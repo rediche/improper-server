@@ -1,16 +1,34 @@
 require('dotenv').config(); // Load environment variables straight away
-
-const http = require('http');
+const app = require('express')();
+const http = require('http').createServer(app);
+const io = require('socket.io')(http);
 const connectionPool = require('./database');
 
 const hostname = '127.0.0.1';
 const port = 3000;
 
-const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'application/json');
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/demo.html');
+});
 
-  connectionPool.getConnection((error, connection) => {
+io.on('connection', (socket) => {
+  console.log('A user connected');
+
+  socket.on('disconnect', () => {
+    console.log('user disconnected');
+  });
+});
+
+http.listen(3000, () => {
+  console.log("Listening on *:3000");
+});
+
+/* const server = http.createServer((req, res) => {
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'text/html');
+  res.end("Hello world"); */
+
+  /* connectionPool.getConnection((error, connection) => {
     if (error) {
       console.error(`Failed getting pool connection. ${error}`);
       return;
@@ -22,14 +40,13 @@ const server = http.createServer((req, res) => {
         return;
       }
     
-      console.log(results);
       res.end(JSON.stringify(results));
     
       connection.release();
     });
-  });
-});
+  }); */
+//});
 
-server.listen(port, hostname, () => {
+/* server.listen(port, hostname, () => {
   console.log(`Server running at http://${hostname}:${port}`);
-});
+}); */
