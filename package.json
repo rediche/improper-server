@@ -1,0 +1,26 @@
+{
+  "name": "improper-server",
+  "version": "1.0.0",
+  "description": "A server for a digital Cards Against Humanity clone, called Improper Cards.",
+  "main": "server.js",
+  "dependencies": {
+    "dotenv": "^7.0.0",
+    "mysql": "^2.16.0",
+    "nodemon": "^1.18.11"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rediche/improper-server.git"
+  },
+  "author": "Marcus Asbæk Geil",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rediche/improper-server/issues"
+  },
+  "homepage": "https://github.com/rediche/improper-server#readme"
+}
