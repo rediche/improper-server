@@ -2,8 +2,7 @@ require('dotenv').config(); // Load environment variables straight away
 const app = require('express')();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
-const connectionPool = require('./database');
-const utils = require('./utils');
+const game = require('./game');
 
 const hostname = '127.0.0.1';
 const port = 3000;
@@ -19,32 +18,7 @@ io.on('connection', (socket) => {
     console.log('user disconnected');
   });
 
-  socket.on('create-game', () => {
-    console.log('Create a new game!');
-    const id = utils.makeId(6);
-
-    // TODO: If already existing with not ended_at value, try again.
-    const query = "INSERT INTO games (code) VALUES (?)";
-    const values = [id];
-    connectionPool.getConnection((error, connection) => {
-      if (error) {
-        console.error(`Failed getting pool connection. ${error}`);
-        return;
-      }
-
-      connection.query(query, values, (error, result) => {
-        if (error) {
-          console.error(`Could not create new game. ${error}`);
-          return;
-        }
-        
-        console.log(id);
-        socket.join(id);
-        socket.emit('game-created', { id });
-      });
-    });
-
-  });
+  socket.on('create-game', game.createGame(socket));
 });
 
 http.listen(3000, () => {
