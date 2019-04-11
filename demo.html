@@ -9,9 +9,19 @@
 <body>
   <h1>Socket demo</h1>
 
+  <button id="create">Create new game</button>
+
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
+
+    document.getElementById('create').addEventListener('click', () => {
+      socket.emit('create-game');
+    });
+
+    socket.on('game-created', (data) => {
+      console.log('Game created with ID', data.id);
+    });
   </script>
 </body>
 </html>
