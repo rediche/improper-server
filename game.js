@@ -1,6 +1,6 @@
 const connectionPool = require("./database");
 const utils = require("./utils");
-const io = require('./server').io;
+const io = require("./server").io;
 
 // REPORT: Talk about the currentGames array and how it keeps state in the backend.
 const currentGames = [];
@@ -15,11 +15,38 @@ class Game {
   }
 
   start(callback) {
-    // - Set started_at when game is started. (Transaction?)
-    // - Create a round in the rounds table. (Transaction?)
-    // - Give all players 10 white cards. (Only in memory?)
+    const { id, started } = this;
 
-    callback(null, this);
+    if (started) {
+      callback("Game is already started.", this);
+      return;
+    }
+
+    connectionPool.getConnection((error, connection) => {
+      if (error) {
+        // TODO: Send error to frontend
+        console.error("Failed to get connection to database.", error);
+        callback(error, this);
+        return;
+      }
+      
+      // - Give all players 10 white cards. (Only in memory?)
+      connection.query(
+        "UPDATE games SET started_at = NOW() WHERE id = ?",
+        [id],
+        (error, result) => {
+          if (error) {
+            console.error("Failed to start game.", error);
+            callback(error, this);
+            return;
+          }
+
+          this.started = true;
+
+          callback(null, this);
+        }
+      );
+    });
   }
 
   addPlayer(socketId, callback) {
@@ -47,7 +74,6 @@ class Game {
         }
       );
     });
-
   }
 }
 
@@ -118,7 +144,7 @@ const createGameDB = (code, callback) => {
           return;
         }
 
-        callback(null, {code, id: result.insertId });
+        callback(null, { code, id: result.insertId });
       }
     );
   });
@@ -177,18 +203,18 @@ const joinGame = socket => ({ code }) => {
 const startGame = socket => () => {
   // Check if socket is a host
   const hostingGame = currentGames.find(game => game.host === socket.id);
-  
+
   if (!hostingGame) {
     // TODO: Send error
-    console.error('You are not hosting any games.');
+    console.error("You are not hosting any games.");
     return;
   }
 
   console.log(hostingGame);
-  
+
   if (hostingGame.players.length < 2) {
     // TODO: Send error
-    console.error('At least 2 players need to join the game.');
+    console.error("At least 2 players need to join the game.");
     return;
   }
 
@@ -199,7 +225,10 @@ const startGame = socket => () => {
       return;
     }
     console.log("Game is started!", game.code);
-    socket.emit('game-started').to(game.code).emit('game-started');
+    socket
+      .emit("game-started")
+      .to(game.code)
+      .emit("game-started");
   });
 };
 
