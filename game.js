@@ -33,12 +33,26 @@ class Game {
             return;
           }
 
-          this.players.push(socketId);
+          this.players.push(new Player({ socketId }));
           callback(null);
         }
       );
     });
 
+  }
+}
+
+class Player {
+  constructor({ id }) {
+    this.id = id;
+    this.cards = [];
+  }
+}
+
+class Card {
+  constructor({ id, text }) {
+    this.id = id;
+    this.text = text;
   }
 }
 
@@ -169,7 +183,7 @@ const startGame = socket => () => {
     return;
   }
 
-  
+
 
 
   // - Set started_at when game is started. (Transaction?)
