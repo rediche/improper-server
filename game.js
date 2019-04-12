@@ -42,7 +42,7 @@ class Game {
             return;
           }
 
-          this.players.push(new Player({ socketId }));
+          this.players.push(new Player({ id: socketId }));
           callback(null);
         }
       );
