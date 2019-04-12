@@ -29,7 +29,7 @@ class Game {
         callback(error, this);
         return;
       }
-      
+
       // - Give all players 10 white cards. (Only in memory?)
       connection.query(
         "UPDATE games SET started_at = NOW() WHERE id = ?",
@@ -42,6 +42,64 @@ class Game {
           }
 
           this.started = true;
+          this.dealCardsToPlayers(error => {
+            if (error) {
+              callback(error, this);
+              return;
+            }
+
+            callback(null, this);
+          });
+        }
+      );
+    });
+  }
+
+  // REPORT: Talk about thoughts for query speed in the DB. 1 request per player, vs 1 big request.
+  // TODO: Should also not allow repeated white cards during a game.
+  dealCardsToPlayers(callback) {
+    const { started, players } = this;
+    const CARD_MAX = 10;
+
+    if (!started) {
+      callback("Game has to be started, before cards can be dealt.", this);
+      return;
+    }
+
+    const missingWhiteCards = players.reduce(
+      (total, player) => (total += player.cards.length),
+      players.length * CARD_MAX
+    );
+
+    connectionPool.getConnection((error, connection) => {
+      if (error) {
+        // TODO: Pass error to frontend
+        console.error("Could not establish connection.", error);
+        callback(error, this);
+        return;
+      }
+
+      connection.query(
+        "SELECT id, text FROM cards WHERE type = ? ORDER BY RAND() LIMIT ?",
+        ["white", missingWhiteCards],
+        (error, result) => {
+          if (error) {
+            // TODO: Pass error to frontend
+            console.error(
+              "Could not find random white cards for players.",
+              error
+            );
+            callback(error, this);
+            return;
+          }
+
+          this.players.map(player => {
+            const missingAmount = CARD_MAX - player.cards.length;
+
+            for (let i = 0; i < missingAmount; i++) {
+              player.cards.push(new Card(result.splice(0, 1)[0]));
+            }
+          });
 
           callback(null, this);
         }
@@ -224,11 +282,11 @@ const startGame = socket => () => {
       console.log("Error:", error);
       return;
     }
-    console.log("Game is started!", game.code);
+
     socket
-      .emit("game-started")
+      .emit("game-started")  // Emit to hosting socket.
       .to(game.code)
-      .emit("game-started");
+      .emit("game-started"); // Emit to all other sockets in game.
   });
 };
 
