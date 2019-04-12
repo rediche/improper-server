@@ -23,21 +23,33 @@ const createGame = (socket) => () => {
   const id = utils.makeId(6);
 
   // TODO: If already existing with not ended_at value, try again.
-  connectionPool.getConnection((error, connection) => {
+  createGameDB(id, (error, id) => {
     if (error) {
-      console.error(`Failed getting pool connection. ${error}`);
       return;
     }
 
-    connection.query("INSERT INTO games (code) VALUES (?)", [id], (error, result) => {
+    socket.join(id);
+    socket.emit('game-created', { id });
+    console.log(`Created a game with ID: ${id}`);
+  });
+}
+
+const createGameDB = (code, callback) => {
+  connectionPool.getConnection((error, connection) => {
+    if (error) {
+      console.error(`Failed getting pool connection. ${error}`);
+      callback(error, null);
+      return;
+    }
+
+    connection.query("INSERT INTO games (code) VALUES (?)", [code], (error, result) => {
       if (error) {
         console.error(`Could not create new game. ${error}`);
+        callback(error, null);
         return;
       }
-      
-      socket.join(id);
-      socket.emit('game-created', { id });
-      console.log(`Created a game with ID: ${id}`);
+
+      callback(null, code);
     });
   });
 }
@@ -113,7 +125,7 @@ const joinGame = (socket) => ({ gameId }) => {
 const startGame = (socket) => () => {
   console.log("Attempt to start game.");
   // - Can't start game, if only 1 player is connected.
-  
+
 
 
   // - Set started_at when game is started. (Transaction?)
