@@ -11,6 +11,8 @@
 
   <button id="create">Create new game</button>
   <br>
+  <button id="start">Start game</button>
+  <br>
   <input id="join-id" type="text" maxlength="6"><button id="join">Join game</button>
 
   <script src="/socket.io/socket.io.js"></script>
@@ -19,6 +21,10 @@
 
     document.getElementById('create').addEventListener('click', () => {
       socket.emit('create-game');
+    });
+
+    document.getElementById('start').addEventListener('click', () => {
+      socket.emit('start-game');
     });
 
     document.getElementById('join').addEventListener('click', () => {

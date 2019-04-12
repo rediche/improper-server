@@ -20,12 +20,7 @@ io.on('connection', (socket) => {
 
   socket.on('create-game', game.createGame(socket));
   socket.on('join-game', game.joinGame(socket));
-  /* TODO: Start game 
-           - Can't start game, if only 1 player is connected.
-           - Set started_at when game is started. (Transaction?)
-           - Create a round in the rounds table. (Transaction?)
-           - Give all players 10 white cards. (Only in memory?)
-  */
+  socket.on('start-game', game.startGame(socket));
   /* TODO: Play a card
            - An entry is made for the player in the moves table.
   */

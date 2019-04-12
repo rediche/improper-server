@@ -108,7 +108,22 @@ const joinGame = (socket) => ({ gameId }) => {
 
 }
 
+/* TODO: Start game 
+*/
+const startGame = (socket) => () => {
+  console.log("Attempt to start game.");
+  // - Can't start game, if only 1 player is connected.
+  
+
+
+  // - Set started_at when game is started. (Transaction?)
+  // - Create a round in the rounds table. (Transaction?)
+  // - Give all players 10 white cards. (Only in memory?)
+  
+}
+
 module.exports = {
   createGame,
-  joinGame
+  joinGame,
+  startGame
 }
