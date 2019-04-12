@@ -74,7 +74,6 @@ const createGame = socket => () => {
     socket.join(code);
     socket.emit("game-created", { code });
     console.log(`Created a game with code: ${code}`);
-    console.log(currentGames);
   });
 };
 
@@ -144,7 +143,6 @@ const joinGame = socket => ({ code }) => {
   }
 
   unstartedGame.addPlayer(socket.id, () => {
-    console.log(unstartedGame);
     socket.join(code);
     socket.emit("game-joined", { code });
     console.log(`Joined game with id: ${code}`);
@@ -154,11 +152,25 @@ const joinGame = socket => ({ code }) => {
 /* TODO: Start game
  */
 const startGame = socket => () => {
-  console.log("Attempt to start game.");
   // Check if socket is a host
+  const hostingGame = currentGames.find(game => game.host === socket.id);
+  
+  if (!hostingGame) {
+    // TODO: Send error
+    console.error('You are not hosting any games.');
+    return;
+  }
+
+  console.log(hostingGame);
+  
+  if (hostingGame.players.length < 2) {
+    // TODO: Send error
+    console.error('At least 2 players need to join the game.');
+    return;
+  }
 
   
-  // - Can't start game, if only 1 player is connected.
+
 
   // - Set started_at when game is started. (Transaction?)
   // - Create a round in the rounds table. (Transaction?)
