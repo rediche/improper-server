@@ -28,15 +28,15 @@
     });
 
     document.getElementById('join').addEventListener('click', () => {
-      socket.emit('join-game', { gameId: document.getElementById('join-id').value });
+      socket.emit('join-game', { code: document.getElementById('join-id').value });
     });
 
     socket.on('game-created', (data) => {
-      console.log('Game created with ID', data.id);
+      console.log('Game created with code', data.code);
     });
 
     socket.on('game-joined', (data) => {
-      console.log('Game joined with ID', data.gameId);
+      console.log('Game joined with code', data.code);
     });
   </script>
 </body>

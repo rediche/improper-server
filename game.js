@@ -1,7 +1,48 @@
-const connectionPool = require('./database');
-const utils = require('./utils');
+const connectionPool = require("./database");
+const utils = require("./utils");
 
-const isInGame = (socket) => {
+// REPORT: Talk about the currentGames array and how it keeps state in the backend.
+const currentGames = [];
+
+class Game {
+  constructor({ host, code, id }) {
+    this.host = host;
+    this.code = code;
+    this.id = id;
+    this.started = false;
+    this.players = [];
+  }
+
+  addPlayer(socketId, callback) {
+    const { id } = this;
+
+    connectionPool.getConnection((error, connection) => {
+      if (error) {
+        console.error(`Failed getting pool connection. ${error}`);
+        callback(error);
+        return;
+      }
+
+      connection.query(
+        "INSERT INTO players (session_id, game_id) VALUES (?, ?)",
+        [socketId, id],
+        (error, result) => {
+          if (error) {
+            console.error("Could not create player for game.", error);
+            callback(error);
+            return;
+          }
+
+          this.players.push(socketId);
+          callback(null);
+        }
+      );
+    });
+
+  }
+}
+
+const isInGame = socket => {
   // TODO: Do a better check here.
   // - If in more rooms.
   // - Then check for socket ID in DB to get game.
@@ -11,9 +52,9 @@ const isInGame = (socket) => {
   }
 
   return false;
-}
+};
 
-const createGame = (socket) => () => {
+const createGame = socket => () => {
   // REPORT: Deny creating a game, if a room is joined.
   if (isInGame(socket)) {
     console.error(`Cannot create a game, when already connected to another.`);
@@ -23,16 +64,19 @@ const createGame = (socket) => () => {
   const id = utils.makeId(6);
 
   // TODO: If already existing with not ended_at value, try again.
-  createGameDB(id, (error, id) => {
+  createGameDB(id, (error, { code, id }) => {
     if (error) {
       return;
     }
 
-    socket.join(id);
-    socket.emit('game-created', { id });
-    console.log(`Created a game with ID: ${id}`);
+    const game = new Game({ host: socket.id, code, id });
+    currentGames.push(game);
+    socket.join(code);
+    socket.emit("game-created", { code });
+    console.log(`Created a game with code: ${code}`);
+    console.log(currentGames);
   });
-}
+};
 
 const createGameDB = (code, callback) => {
   connectionPool.getConnection((error, connection) => {
@@ -42,100 +86,87 @@ const createGameDB = (code, callback) => {
       return;
     }
 
-    connection.query("INSERT INTO games (code) VALUES (?)", [code], (error, result) => {
-      if (error) {
-        console.error(`Could not create new game. ${error}`);
-        callback(error, null);
-        return;
-      }
+    connection.query(
+      "INSERT INTO games (code) VALUES (?)",
+      [code],
+      (error, result) => {
+        if (error) {
+          console.error(`Could not create new game. ${error}`);
+          callback(error, null);
+          return;
+        }
 
-      callback(null, code);
-    });
+        callback(null, {code, id: result.insertId });
+      }
+    );
   });
-}
+};
 
 // TODO: Add more checks. Should only allows letters and numbers.
-const isValidGameId = (id) => {
-  if (!id) {
+const isValidGameCode = code => {
+  if (!code) {
     return false;
   }
 
-  if (id.length !== 6) {
+  if (code.length !== 6) {
     return false;
   }
 
   return true;
-}
+};
 
-const joinGame = (socket) => ({ gameId }) => {
+const joinGame = socket => ({ code }) => {
   if (isInGame(socket)) {
     console.error(`Cannot join a game, when already connected to another.`);
     return;
   }
 
-  if (!isValidGameId(gameId)) {
+  if (!isValidGameCode(code)) {
     // TODO: Send error message
-    console.error('Invalid join code');
+    console.error("Invalid join code");
     return;
   }
 
-  connectionPool.getConnection((error, connection) => {
-    if (error) {
-      console.error(`Failed getting pool connection. ${error}`);
-      return;
-    }
+  if (currentGames.length < 1) {
+    // TODO: Send error
+    console.error("Game does not exist.");
+    return;
+  }
 
-    connection.query("SELECT id, started_at FROM games WHERE code = ?", [gameId], (error, result) => {
-      if (error) {
-        console.error(`Error while checking if game is started and exists. ${error}`);
-        return;
-      }
+  const unstartedGame = currentGames.find(
+    game => game.started === false && game.code === code
+  );
 
-      if (result.length < 1) {
-        // TODO: Send error
-        console.error('Game does not exist.');
-        return;
-      }
+  if (!unstartedGame) {
+    // TODO: Send error to client
+    console.error("Game is already started.");
+    return;
+  }
 
-      const unstartedGame = result.find(game => game.started_at === null);
+  unstartedGame.addPlayer(socket.id, () => {
+    console.log(unstartedGame);
+    socket.join(code);
+    socket.emit("game-joined", { code });
+    console.log(`Joined game with id: ${code}`);
+  });
+};
 
-      if (!unstartedGame) {
-        // TODO: Send error
-        console.error('Game is already started.');
-        return;
-      }
-
-      connection.query('INSERT INTO players (session_id, game_id) VALUES (?, ?)', [socket.id, unstartedGame.id], (error, result) => {
-        if (error) {
-          console.error('Could not create player for game.', error);
-          return;
-        }
-
-        socket.join(gameId);
-        socket.emit('game-joined', { gameId });
-        console.log(`Joined game with id: ${gameId}`);
-      });
-    });
-  }); 
-
-}
-
-/* TODO: Start game 
-*/
-const startGame = (socket) => () => {
+/* TODO: Start game
+ */
+const startGame = socket => () => {
   console.log("Attempt to start game.");
+  // Check if socket is a host
+
+  
   // - Can't start game, if only 1 player is connected.
-
-
 
   // - Set started_at when game is started. (Transaction?)
   // - Create a round in the rounds table. (Transaction?)
   // - Give all players 10 white cards. (Only in memory?)
-  
-}
+};
 
 module.exports = {
   createGame,
   joinGame,
   startGame
-}
+};
