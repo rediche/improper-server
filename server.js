@@ -21,9 +21,6 @@ io.on('connection', (socket) => {
   socket.on('create-game', gameEvents.createGame(socket));
   socket.on('join-game', gameEvents.joinGame(socket));
   socket.on('start-game', gameEvents.startGame(socket));
-  /* TODO: Play a card
-           - An entry is made for the player in the moves table.
-  */
 });
 
 http.listen(3000, () => {

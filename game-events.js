@@ -6,10 +6,6 @@ const Game = require('./entities/game');
 const currentGames = [];
 
 const isInGame = socket => {
-  // TODO: Do a better check here.
-  // - If in more rooms.
-  // - Then check for socket ID in DB to get game.
-  // - And check if game is not ended.
   if (Object.keys(socket.rooms).length > 1) {
     return true;
   }
@@ -26,7 +22,6 @@ const createGame = socket => () => {
 
   const id = utils.makeId(6);
 
-  // TODO: If already existing with not ended_at value, try again.
   createGameDB(id, (error, { code, id }) => {
     if (error) {
       return;
@@ -64,7 +59,6 @@ const createGameDB = (code, callback) => {
   });
 };
 
-// TODO: Add more checks. Should only allows letters and numbers.
 const isValidGameCode = code => {
   if (!code) {
     return false;
