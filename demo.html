@@ -38,6 +38,10 @@
     socket.on('game-joined', (data) => {
       console.log('Game joined with code', data.code);
     });
+
+    socket.on('game-started', (data) => {
+      console.log('GAME STARTED! Lets go!');
+    });
   </script>
 </body>
 </html>

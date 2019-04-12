@@ -1,5 +1,6 @@
 const connectionPool = require("./database");
 const utils = require("./utils");
+const io = require('./server').io;
 
 // REPORT: Talk about the currentGames array and how it keeps state in the backend.
 const currentGames = [];
@@ -11,6 +12,14 @@ class Game {
     this.id = id;
     this.started = false;
     this.players = [];
+  }
+
+  start(callback) {
+    // - Set started_at when game is started. (Transaction?)
+    // - Create a round in the rounds table. (Transaction?)
+    // - Give all players 10 white cards. (Only in memory?)
+
+    callback(null, this);
   }
 
   addPlayer(socketId, callback) {
@@ -183,12 +192,15 @@ const startGame = socket => () => {
     return;
   }
 
-
-
-
-  // - Set started_at when game is started. (Transaction?)
-  // - Create a round in the rounds table. (Transaction?)
-  // - Give all players 10 white cards. (Only in memory?)
+  hostingGame.start((error, game) => {
+    if (error) {
+      // TODO: Send error message
+      console.log("Error:", error);
+      return;
+    }
+    console.log("Game is started!", game.code);
+    socket.emit('game-started').to(game.code).emit('game-started');
+  });
 };
 
 module.exports = {
