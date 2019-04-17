@@ -1,6 +1,7 @@
 const connectionPool = require("../database");
 const Player = require('./player');
 const Card = require('./card');
+const Round = require('./round');
 
 module.exports = class Game {
   constructor({ host, code, id }) {
@@ -39,7 +40,7 @@ module.exports = class Game {
           }
 
           this.started = true;
-          this.dealCardsToPlayers(error => {
+          this.newRound(error => {
             if (error) {
               callback(error, this);
               return;
@@ -47,9 +48,58 @@ module.exports = class Game {
 
             callback(null, this);
           });
+
+          /* this.dealCardsToPlayers(error => {
+            if (error) {
+              callback(error, this);
+              return;
+            }
+
+            callback(null, this);
+          }); */
         }
       );
     });
+  }
+
+  newRound(callback) {
+    const { id } = this;
+    this.currentRound = new Round(id);
+    this.currentRound.start()
+      .then(() => {
+        this.dealCardsToPlayers(error => {
+          if (error) {
+            callback(error, this);
+            return;
+          }
+  
+          // Call callback
+          console.log(this);
+          callback(null, this);
+        });
+      })
+      .catch(error => console.error(error));
+   /*  new Round(this.id, (error, round) => {
+      if (error) {
+        console.error("Could not create new round.", error);
+      }
+
+      this.currentRound = round;
+
+      // Deal cards to players
+      this.dealCardsToPlayers(error => {
+        if (error) {
+          callback(error, this);
+          return;
+        }
+
+        // Call callback
+        console.log(this);
+        callback(null, this);
+      });
+    }); */
+
+
   }
 
   // REPORT: Talk about thoughts for query speed in the DB. 1 request per player, vs 1 big request.
