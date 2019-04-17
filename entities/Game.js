@@ -55,7 +55,8 @@ module.exports = class Game {
 
   newRound(callback) {
     const { id } = this;
-    this.currentRound = new Round(id);
+
+    this.currentRound = new Round(id, this.getNextCzar().id);
     this.currentRound.start()
       .then(() => {
         this.dealCardsToPlayers(error => {
@@ -70,6 +71,20 @@ module.exports = class Game {
         });
       })
       .catch(error => console.error(error));
+  }
+
+  getNextCzar() {
+    if (this.currentRound) {
+      const currentCzarIndex = this.players.findIndex(player => player.id === this.currentRound.czarId);
+
+      if (players.length === currentCzarIndex + 1) {
+        return this.players[0];
+      } else {
+        return this.players[currentCzarIndex + 1];
+      }
+    } else {
+      return this.players[0];
+    }
   }
 
   // REPORT: Talk about thoughts for query speed in the DB. 1 request per player, vs 1 big request.
@@ -143,7 +158,7 @@ module.exports = class Game {
             return;
           }
 
-          this.players.push(new Player({ id: socketId }));
+          this.players.push(new Player({ id: result.insertId, socketId }));
           callback(null);
         }
       );

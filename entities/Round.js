@@ -2,8 +2,9 @@ const connectionPool = require("../database");
 const Card = require("./card");
 
 module.exports = class Round {
-  constructor(gameId) {
+  constructor(gameId, czarId) {
     this.gameId = gameId;
+    this.czarId = czarId;
   }
 
   async start() {
@@ -13,7 +14,7 @@ module.exports = class Round {
 
   create(cardId) {
     // Create round in rounds table
-    const { gameId } = this;
+    const { gameId, czarId } = this;
 
     return new Promise((resolve, reject) => {
       connectionPool.getConnection((error, connection) => {
@@ -24,8 +25,8 @@ module.exports = class Round {
         }
 
         connection.query(
-          "INSERT INTO rounds (game_id, card_id) VALUES (?, ?)",
-          [gameId, cardId],
+          "INSERT INTO rounds (game_id, card_id, czar_id) VALUES (?, ?, ?)",
+          [gameId, cardId, czarId],
           (error, result) => {
             if (error) {
               // TODO: Pass error to frontend
