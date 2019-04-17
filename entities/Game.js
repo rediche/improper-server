@@ -48,15 +48,6 @@ module.exports = class Game {
 
             callback(null, this);
           });
-
-          /* this.dealCardsToPlayers(error => {
-            if (error) {
-              callback(error, this);
-              return;
-            }
-
-            callback(null, this);
-          }); */
         }
       );
     });
@@ -79,27 +70,6 @@ module.exports = class Game {
         });
       })
       .catch(error => console.error(error));
-   /*  new Round(this.id, (error, round) => {
-      if (error) {
-        console.error("Could not create new round.", error);
-      }
-
-      this.currentRound = round;
-
-      // Deal cards to players
-      this.dealCardsToPlayers(error => {
-        if (error) {
-          callback(error, this);
-          return;
-        }
-
-        // Call callback
-        console.log(this);
-        callback(null, this);
-      });
-    }); */
-
-
   }
 
   // REPORT: Talk about thoughts for query speed in the DB. 1 request per player, vs 1 big request.
