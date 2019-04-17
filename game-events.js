@@ -106,8 +106,6 @@ const joinGame = socket => ({ code }) => {
   });
 };
 
-/* TODO: Start game
- */
 const startGame = socket => () => {
   // Check if socket is a host
   const hostingGame = currentGames.find(game => game.host === socket.id);
@@ -117,8 +115,6 @@ const startGame = socket => () => {
     console.error("You are not hosting any games.");
     return;
   }
-
-  console.log(hostingGame);
 
   if (hostingGame.players.length < 2) {
     // TODO: Send error
