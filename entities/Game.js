@@ -40,14 +40,7 @@ module.exports = class Game {
           }
 
           this.started = true;
-          this.newRound(error => {
-            if (error) {
-              callback(error, this);
-              return;
-            }
-
-            callback(null, this);
-          });
+          callback(null, this);
         }
       );
     });

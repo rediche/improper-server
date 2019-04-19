@@ -24,6 +24,7 @@ const createGame = socket => () => {
 
   createGameDB(id, (error, { code, id }) => {
     if (error) {
+      console.error('Could not create game', error);
       return;
     }
 
@@ -109,19 +110,19 @@ const joinGame = socket => ({ code }) => {
 const startGame = socket => () => {
   // Check if socket is a host
   const hostingGame = currentGames.find(game => game.host === socket.id);
-
+  
   if (!hostingGame) {
     // TODO: Send error
     console.error("You are not hosting any games.");
     return;
   }
-
+  
   if (hostingGame.players.length < 2) {
     // TODO: Send error
     console.error("At least 2 players need to join the game.");
     return;
   }
-
+  
   hostingGame.start((error, game) => {
     if (error) {
       // TODO: Send error message
@@ -133,8 +134,35 @@ const startGame = socket => () => {
       .emit("game-started")  // Emit to hosting socket.
       .to(game.code)
       .emit("game-started"); // Emit to all other sockets in game.
+
+    newRound(socket)();
   });
 };
+
+const newRound = (socket) => () => {
+  // Find game
+  const game = currentGames.find(game => game.host === socket.id);
+
+  if (!game) {
+    // TODO: Emit error
+    console.error('Could not find game');
+    return;
+  }
+
+  game.newRound((error, game) => {
+    if (error) {
+      console.error("Could not start new game", error);
+      return;
+    }
+
+    socket.emit("new-round", { blackCard: game.currentRound.card });
+
+    // Emit each individual player.
+    game.players.map(player =>  {
+      socket.to(player.socketId).emit("new-round", { cards: player.cards }) 
+    });
+  });
+}
 
 module.exports = {
   createGame,
