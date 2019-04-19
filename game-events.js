@@ -171,8 +171,9 @@ const newRound = (socket) => () => {
     socket.emit("new-round", { blackCard: game.currentRound.card });
 
     // Emit each individual player.
+    const czar = game.currentRound.getCzarSocketId(game.players);
     game.players.map(player =>  {
-      socket.to(player.socketId).emit("new-round", { cards: player.cards }) 
+      socket.to(player.socketId).emit("new-round", { cards: player.cards, czar });
     });
   });
 }

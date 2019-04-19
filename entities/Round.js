@@ -21,6 +21,11 @@ module.exports = class Round {
     this.id = await this.create(this.card.id);
   }
 
+  getCzarSocketId(players) {
+    const { czarId } = this;
+    return players.find(player => player.id === czarId).socketId;
+  }
+
   create(cardId) {
     // Create round in rounds table
     const { gameId, czarId } = this;
