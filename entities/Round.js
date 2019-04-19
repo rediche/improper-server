@@ -95,6 +95,12 @@ module.exports = class Round {
         return;
       }
 
+      const hasCardOnHand = player.cards.find(card => card.id === cardId);
+      if (!hasCardOnHand) {
+        reject("Player does not have the card on hand.");
+        return;
+      }
+
       connectionPool.getConnection((error, connection) => {
         if (error) {
           reject(error);
@@ -111,8 +117,7 @@ module.exports = class Round {
               return;
             }
 
-            this.moves[player.id] = cardId;
-
+            this.moves[player.id] = player.cards.find(card => card.id === cardId);
             player.cards = player.cards.filter(card => card.id !== cardId);
 
             resolve();
@@ -121,6 +126,14 @@ module.exports = class Round {
       });
     });
 
+  }
+
+  getPlayedCards(players) {
+    const { moves } = this;
+  
+    return Object.keys(moves).reduce((playedCards, key) => {
+      return [...playedCards, moves[key]];
+    }, []);
   }
 
   allMovesMade() {

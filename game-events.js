@@ -202,7 +202,11 @@ const cardSelected = (socket) => ({ id }) => {
       socket.emit('card-played', { id });
       
       if (game.currentRound.allMovesMade()) {
-        socket.emit('find-winner').to(game.code).emit('find-winner');
+        const playedCards = game.currentRound.getPlayedCards(game.players);
+        socket
+          .emit('find-winner', { playedCards})
+          .to(game.code)
+          .emit('find-winner', { playedCards});
       }
     })
     .catch(error => console.error(error));
