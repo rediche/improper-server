@@ -198,8 +198,7 @@ const cardSelected = (socket) => ({ id }) => {
 
   game.currentRound.makeMove(id, player)
     .then(() => {
-      console.log("Card played successfully");
-      // TODO: Emit, that card was played successfully?
+      socket.emit('card-played', { id });
       // TODO: Check if all moves are made. If so, go to PICK WINNER.
     })
     .catch(error => console.error(error));
