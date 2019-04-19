@@ -107,6 +107,9 @@ module.exports = class Round {
             }
 
             this.moves[player.id] = cardId;
+
+            player.cards = player.cards.filter(card => card.id !== cardId);
+
             resolve();
           }
         );
