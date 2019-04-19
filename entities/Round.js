@@ -2,9 +2,18 @@ const connectionPool = require("../database");
 const Card = require("./card");
 
 module.exports = class Round {
-  constructor(gameId, czarId) {
+  constructor(gameId, czarId, players) {
     this.gameId = gameId;
     this.czarId = czarId;
+
+    this.moves = players.reduce((moves, player) => {
+      if (player.id === czarId) {
+        return moves;
+      }
+
+      moves[player.id] = null;
+      return moves;
+    }, {});
   }
 
   async start() {
@@ -70,5 +79,39 @@ module.exports = class Round {
         );
       });
     });
+  }
+
+  makeMove(cardId, player) {
+    const { id } = this;
+
+    return new Promise((resolve, reject) => {
+      if (this.moves[player.id]) {
+        reject("Player already made a move this round.");
+        return;
+      }
+
+      connectionPool.getConnection((error, connection) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        connection.query(
+          "INSERT INTO moves (round_id, player_id, card_id) VALUES (?, ?, ?)",
+          [id, player.id, cardId],
+          (error, result) => {
+            if (error) {
+              // TODO: Pass error to frontend
+              reject(error);
+              return;
+            }
+
+            this.moves[player.id] = cardId;
+            resolve();
+          }
+        );
+      });
+    });
+
   }
 };

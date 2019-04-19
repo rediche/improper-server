@@ -177,9 +177,38 @@ const newRound = (socket) => () => {
   });
 }
 
+const cardSelected = (socket) => ({ id }) => {
+  const game = currentGames.find(game => {
+    return game.players.find(player => player.socketId === socket.id);
+  });
+
+  if (!game) {
+    // TODO: Emit error
+    console.error("Could not find game.");
+    return;
+  }
+
+  const player = game.players.find(player => player.socketId === socket.id);
+
+  if (!player) {
+    // TODO: Emit error
+    console.error("Player not found.");
+    return;
+  }
+
+  game.currentRound.makeMove(id, player)
+    .then(() => {
+      console.log("Card played successfully");
+      // TODO: Emit, that card was played successfully?
+      // TODO: Check if all moves are made. If so, go to PICK WINNER.
+    })
+    .catch(error => console.error(error));
+}
+
 module.exports = {
   createGame,
   joinGame,
   startGame,
-  disconnect
+  disconnect,
+  cardSelected
 };

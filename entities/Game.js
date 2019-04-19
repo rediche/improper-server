@@ -49,7 +49,7 @@ module.exports = class Game {
   newRound(callback) {
     const { id } = this;
 
-    this.currentRound = new Round(id, this.getNextCzar().id);
+    this.currentRound = new Round(id, this.getNextCzar().id, this.players);
     this.currentRound.start()
       .then(() => {
         this.dealCardsToPlayers(error => {
