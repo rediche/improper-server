@@ -5,6 +5,19 @@ const Game = require('./entities/game');
 // REPORT: Talk about the currentGames array and how it keeps state in the backend.
 const currentGames = [];
 
+const disconnect = socket => () => {
+  console.log('A user disconnected');
+
+  const hostedGameIndex = currentGames.findIndex(game => game.host === socket.id);
+
+  // TODO: End the game, in the DB too.
+  // TODO: Emit to all players, that the host has disconnected.
+  if (hostedGameIndex !== -1) {
+    currentGames.splice(hostedGameIndex, 1);
+    console.log("Game has been stopped. Host disconnected.");
+  }
+}
+
 const isInGame = socket => {
   if (Object.keys(socket.rooms).length > 1) {
     return true;
@@ -167,5 +180,6 @@ const newRound = (socket) => () => {
 module.exports = {
   createGame,
   joinGame,
-  startGame
+  startGame,
+  disconnect
 };

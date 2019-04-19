@@ -14,9 +14,7 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
   console.log('A user connected');
 
-  socket.on('disconnect', () => {
-    console.log('A user disconnected');
-  });
+  socket.on('disconnect', gameEvents.disconnect(socket));
 
   socket.on('create-game', gameEvents.createGame(socket));
   socket.on('join-game', gameEvents.joinGame(socket));
