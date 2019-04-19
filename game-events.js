@@ -199,7 +199,10 @@ const cardSelected = (socket) => ({ id }) => {
   game.currentRound.makeMove(id, player)
     .then(() => {
       socket.emit('card-played', { id });
-      // TODO: Check if all moves are made. If so, go to PICK WINNER.
+      
+      if (game.currentRound.allMovesMade()) {
+        socket.emit('find-winner').to(game.code).emit('find-winner');
+      }
     })
     .catch(error => console.error(error));
 }

@@ -117,4 +117,10 @@ module.exports = class Round {
     });
 
   }
+
+  allMovesMade() {
+    const { moves } = this;
+
+    return Object.keys(moves).every(key => moves[key] !== null);
+  }
 };
