@@ -200,13 +200,15 @@ const cardSelected = (socket) => ({ id }) => {
   game.currentRound.makeMove(id, player)
     .then(() => {
       socket.emit('card-played', { id });
+
+      const playedCards = game.currentRound.getPlayedCards(game.players);
+      socket.to(game.host).emit('card-played-host', { playedCards });
       
       if (game.currentRound.allMovesMade()) {
-        const playedCards = game.currentRound.getPlayedCards(game.players);
         socket
-          .emit('find-winner', { playedCards})
+          .emit('find-winner', { playedCards })
           .to(game.code)
-          .emit('find-winner', { playedCards});
+          .emit('find-winner', { playedCards });
       }
     })
     .catch(error => console.error(error));
