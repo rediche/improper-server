@@ -235,14 +235,18 @@ const winnerSelected = (socket) => ({ cardId, gameCode }) => {
 
   game.currentRound.setWinner(player)
     .then(() => {
-      socket
-        .emit('winner-found')
-        .to(game.code)
-        .emit('winner-found');
-
-      setTimeout(() => {
-        game.newRound(newRoundEmits(socket));
-      }, 2000);
+      game.getCardById(cardId)
+        .then((winningCard) => {
+          socket
+            .emit('winner-found', { card: winningCard })
+            .to(game.code)
+            .emit('winner-found', { card: winningCard });
+    
+          setTimeout(() => {
+            game.newRound(newRoundEmits(socket));
+          }, 3000);
+        })
+        .catch(error => console.error(error)); // TODO: Send error to frontend.
     })
     .catch(error => console.error(error)); // TODO: Send error to frontend.
 }

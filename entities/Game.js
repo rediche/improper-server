@@ -209,4 +209,26 @@ module.exports = class Game {
     
     return this.getPlayerById(playerId);
   }
+
+  getCardById(cardId) {
+    return new Promise((resolve, reject) => {
+      connectionPool.query(
+        'SELECT * FROM cards WHERE id = ? LIMIT 1',
+        [cardId],
+        (error, result) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+
+          if (result.length < 1) {
+            reject("No card was found.");
+            return;
+          }
+
+          resolve(result[0]);
+        }
+      );
+    });
+  }
 }
