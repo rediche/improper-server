@@ -50,27 +50,19 @@ const createGame = socket => () => {
 };
 
 const createGameDB = (code, callback) => {
-  connectionPool.getConnection((error, connection) => {
-    if (error) {
-      console.error(`Failed getting pool connection. ${error}`);
-      callback(error, null);
-      return;
-    }
-
-    connection.query(
-      "INSERT INTO games (code) VALUES (?)",
-      [code],
-      (error, result) => {
-        if (error) {
-          console.error(`Could not create new game. ${error}`);
-          callback(error, null);
-          return;
-        }
-
-        callback(null, { code, id: result.insertId });
+  connectionPool.query(
+    "INSERT INTO games (code) VALUES (?)",
+    [code],
+    (error, result) => {
+      if (error) {
+        console.error(`Could not create new game. ${error}`);
+        callback(error, null);
+        return;
       }
-    );
-  });
+
+      callback(null, { code, id: result.insertId });
+    }
+  );
 };
 
 const isValidGameCode = code => {
@@ -162,19 +154,21 @@ const newRound = (socket) => () => {
     return;
   }
 
-  game.newRound((error, game) => {
-    if (error) {
-      console.error("Could not start new game", error);
-      return;
-    }
+  game.newRound(newRoundEmits(socket));
+}
 
-    socket.emit("new-round-host", { blackCard: game.currentRound.card });
+const newRoundEmits = (socket) => (error, game) => {
+  if (error) {
+    console.error("Could not start new game", error);
+    return;
+  }
 
-    // Emit each individual player.
-    const czar = game.currentRound.getCzarSocketId(game.players);
-    game.players.map(player =>  {
-      socket.to(player.socketId).emit("new-round", { cards: player.cards, czar });
-    });
+  socket.emit("new-round-host", { blackCard: game.currentRound.card });
+
+  // Emit each individual player.
+  const czar = game.currentRound.getCzarSocketId(game.players);
+  game.players.map(player =>  {
+    socket.to(player.socketId).emit("new-round", { cards: player.cards, czar });
   });
 }
 
@@ -211,7 +205,40 @@ const cardSelected = (socket) => ({ id }) => {
           .emit('find-winner', { playedCards });
       }
     })
-    .catch(error => console.error(error));
+    .catch(error => console.error(error)); // TODO: Send error to frontend;
+}
+
+const winnerSelected = (socket) => ({ cardId, gameCode }) => {
+  const game = findGameByCode(gameCode);
+
+  if (!game) {
+    console.error("Game was not found."); // TODO: Send error to frontend.
+    return;
+  }
+
+  const player = game.getPlayerByPlayedCard(cardId);
+
+  if (!player) {
+    console.error("Player was not found."); // TODO: Send error to frontend.
+    return;
+  }
+
+  game.currentRound.setWinner(player)
+    .then(() => {
+      socket
+        .emit('winner-found')
+        .to(game.code)
+        .emit('winner-found');
+
+      setTimeout(() => {
+        game.newRound(newRoundEmits(socket));
+      }, 2000);
+    })
+    .catch(error => console.error(error)); // TODO: Send error to frontend.
+}
+
+const findGameByCode = (code) => {
+  return currentGames.find(game => game.code === code);
 }
 
 module.exports = {
@@ -219,5 +246,6 @@ module.exports = {
   joinGame,
   startGame,
   disconnect,
-  cardSelected
+  cardSelected,
+  winnerSelected
 };

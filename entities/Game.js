@@ -20,30 +20,21 @@ module.exports = class Game {
       return;
     }
 
-    connectionPool.getConnection((error, connection) => {
-      if (error) {
-        // TODO: Send error to frontend
-        console.error("Failed to get connection to database.", error);
-        callback(error, this);
-        return;
-      }
-
-      // - Give all players 10 white cards. (Only in memory?)
-      connection.query(
-        "UPDATE games SET started_at = NOW() WHERE id = ?",
-        [id],
-        (error, result) => {
-          if (error) {
-            console.error("Failed to start game.", error);
-            callback(error, this);
-            return;
-          }
-
-          this.started = true;
-          callback(null, this);
+    // - Give all players 10 white cards. (Only in memory?)
+    connectionPool.query(
+      "UPDATE games SET started_at = NOW() WHERE id = ?",
+      [id],
+      (error, result) => {
+        if (error) {
+          console.error("Failed to start game.", error);
+          callback(error, this);
+          return;
         }
-      );
-    });
+
+        this.started = true;
+        callback(null, this);
+      }
+    );
   }
 
   newRound(callback) {
@@ -67,16 +58,18 @@ module.exports = class Game {
   }
 
   getNextCzar() {
-    if (this.currentRound) {
-      const currentCzarIndex = this.players.findIndex(player => player.id === this.currentRound.czarId);
+    const { currentRound, players } = this;
+    
+    if (currentRound) {
+      const currentCzarIndex = players.findIndex(player => player.id === currentRound.czarId);
 
       if (players.length === currentCzarIndex + 1) {
-        return this.players[0];
+        return players[0];
       } else {
-        return this.players[currentCzarIndex + 1];
+        return players[currentCzarIndex + 1];
       }
     } else {
-      return this.players[0];
+      return players[0];
     }
   }
 
@@ -95,66 +88,70 @@ module.exports = class Game {
       players.length * CARD_MAX
     );
 
-    connectionPool.getConnection((error, connection) => {
-      if (error) {
-        // TODO: Pass error to frontend
-        console.error("Could not establish connection.", error);
-        callback(error, this);
-        return;
-      }
-
-      connection.query(
-        "SELECT id, text FROM cards WHERE type = ? ORDER BY RAND() LIMIT ?",
-        ["white", missingWhiteCards],
-        (error, result) => {
-          if (error) {
-            // TODO: Pass error to frontend
-            console.error(
-              "Could not find random white cards for players.",
-              error
-            );
-            callback(error, this);
-            return;
-          }
-
-          this.players.map(player => {
-            const missingAmount = CARD_MAX - player.cards.length;
-
-            for (let i = 0; i < missingAmount; i++) {
-              player.cards.push(new Card(result.splice(0, 1)[0]));
-            }
-          });
-
-          callback(null, this);
+    connectionPool.query(
+      "SELECT id, text FROM cards WHERE type = ? ORDER BY RAND() LIMIT ?",
+      ["white", missingWhiteCards],
+      (error, result) => {
+        if (error) {
+          // TODO: Pass error to frontend
+          console.error(
+            "Could not find random white cards for players.",
+            error
+          );
+          callback(error, this);
+          return;
         }
-      );
-    });
+
+        this.players.map(player => {
+          const missingAmount = CARD_MAX - player.cards.length;
+
+          for (let i = 0; i < missingAmount; i++) {
+            player.cards.push(new Card(result.splice(0, 1)[0]));
+          }
+        });
+
+        callback(null, this);
+      }
+    );
   }
 
   addPlayer(socketId, callback) {
     const { id } = this;
 
-    connectionPool.getConnection((error, connection) => {
-      if (error) {
-        console.error(`Failed getting pool connection. ${error}`);
-        callback(error);
-        return;
-      }
-
-      connection.query(
-        "INSERT INTO players (session_id, game_id) VALUES (?, ?)",
-        [socketId, id],
-        (error, result) => {
-          if (error) {
-            console.error("Could not create player for game.", error);
-            callback(error);
-            return;
-          }
-
-          this.players.push(new Player({ id: result.insertId, socketId }));
-          callback(null);
+    connectionPool.query(
+      "INSERT INTO players (session_id, game_id) VALUES (?, ?)",
+      [socketId, id],
+      (error, result) => {
+        if (error) {
+          console.error("Could not create player for game.", error);
+          callback(error);
+          return;
         }
-      );
-    });
+
+        this.players.push(new Player({ id: result.insertId, socketId }));
+        callback(null);
+      }
+    );
+  }
+
+  getPlayerBySocket(socketId) {
+    const { players } = this;
+    return players.find(player => player.socketId === socketId);
+  }
+
+  getPlayerById(id) {
+    const { players } = this;
+    return players.find(player => player.id === id);
+  }
+
+  getPlayerByPlayedCard(cardId) {
+    const { moves } = this.currentRound;
+    const playerId = Number(Object.keys(moves).find(playerId => moves[playerId].id === cardId));
+
+    if (isNaN(playerId)) {
+      return null;
+    }
+    
+    return this.getPlayerById(playerId);
   }
 }
