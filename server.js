@@ -21,6 +21,7 @@ io.on('connection', (socket) => {
   socket.on('start-game', gameEvents.startGame(socket));
   socket.on('card-selected', gameEvents.cardSelected(socket));
   socket.on('winner-selected', gameEvents.winnerSelected(socket));
+  socket.on('end-game', gameEvents.endGame(socket));
 });
 
 http.listen(3000, () => {

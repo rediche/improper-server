@@ -251,11 +251,38 @@ const findGameByCode = (code) => {
   return currentGames.find(game => game.code === code);
 }
 
+const endGame = (socket) => ({ gameCode }) => {
+  const game = findGameByCode(gameCode);
+
+  if (!game) {
+    console.error("Could not find game."); // TODO: Send error to frontend.
+    return; 
+  }
+
+  game.end()
+    .then((winnerInfo) => {
+      console.log("Game ended!", winnerInfo);
+      socket
+        .emit('game-ended', { winner: winnerInfo.winner_id, wins: winnerInfo.wins })
+        .to(game.code)
+        .emit('game-ended', { winner: winnerInfo.winner_id, wins: winnerInfo.wins });
+      
+
+      const gameIndex = currentGames.findIndex(lookupGame => lookupGame.id === game.id);
+
+      if (gameIndex !== -1) {
+        currentGames.splice(gameIndex, 1);
+      }
+    })
+    .catch(error => console.error(error)); // TODO: Send error to frontend.
+}
+
 module.exports = {
   createGame,
   joinGame,
   startGame,
   disconnect,
   cardSelected,
-  winnerSelected
+  winnerSelected,
+  endGame
 };

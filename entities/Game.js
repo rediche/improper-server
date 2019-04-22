@@ -37,6 +37,64 @@ module.exports = class Game {
     );
   }
 
+  /**
+   * End the game.
+   * @returns Promise<void>
+   */
+  end() {
+    const { id } = this;
+    return new Promise((resolve, reject) => {
+      // Set ended_at in DB
+      connectionPool.query(
+        'UPDATE games SET ended_at = NOW() WHERE id = ?',
+        [id],
+        (error, result) => {
+          if (error) {
+            console.error("Failed to end the game.", error);
+            reject(error);
+            return;
+          }
+
+          // Find winner of game
+          this.currentWinner()
+            .then((winnerInfo) => {
+              resolve(winnerInfo);
+            })
+            .catch(error => reject(error));
+        }
+      )
+    });
+  }
+
+  /**
+   * Returns the player who won the most rounds in this game.
+   * @returns Promise<void>
+   */
+  currentWinner() {
+    const { id } = this;
+
+    return new Promise((resolve, reject) => {
+      connectionPool.query(
+        'SELECT COUNT(*) as wins, winner_id FROM `rounds` WHERE game_id = ? GROUP BY winner_id ORDER BY wins DESC LIMIT 1',
+        [id],
+        (error, result) => {
+          if (error) {
+            console.error("Could not get current winner of the game.", error);
+            reject(error);
+            return;
+          }
+
+          if (result.length < 1) {
+            reject("No winner found.");
+            return;
+          }
+
+          resolve(result[0]);
+        }
+      );
+    });
+  }
+
   newRound(callback) {
     const { id } = this;
 
