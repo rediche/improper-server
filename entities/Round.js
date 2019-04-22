@@ -105,15 +105,11 @@ module.exports = class Round {
   setWinner(player) {
     const { id } = this;
 
-    console.log("Pre promise");
     return new Promise((resolve, reject) => {
-      console.log("In promise");
       if (!this.allMovesMade()) {
         reject("Not all moves have been made this round.");
         return;
       }
-      
-      console.log("All moves made");
 
       connectionPool.query(
         "UPDATE rounds SET winner_id = ? WHERE id = ?",
@@ -123,8 +119,6 @@ module.exports = class Round {
             reject(error);
             return;
           }
-
-          console.log("RESOLVE");
 
           resolve();
         }

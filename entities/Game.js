@@ -91,7 +91,6 @@ module.exports = class Game {
       ["white", missingWhiteCards],
       (error, result) => {
         if (error) {
-          // TODO: Pass error to frontend
           console.error(
             "Could not find random white cards for players.",
             error
