@@ -49,12 +49,10 @@ module.exports = class Game {
             return;
           }
   
-          // Call callback
-          console.log(this);
           callback(null, this);
         });
       })
-      .catch(error => console.error(error));
+      .catch(error => callback(error, this));
   }
 
   getNextCzar() {

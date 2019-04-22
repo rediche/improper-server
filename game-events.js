@@ -163,12 +163,22 @@ const newRoundEmits = (socket) => (error, game) => {
     return;
   }
 
-  socket.emit("new-round-host", { blackCard: game.currentRound.card });
+  if (game.host === socket.id) {
+    socket.emit("new-round-host", { blackCard: game.currentRound.card });
+  } else {
+    socket.to(game.host).emit("new-round-host", { blackCard: game.currentRound.card });
+  }
 
   // Emit each individual player.
   const czar = game.currentRound.getCzarSocketId(game.players);
   game.players.map(player =>  {
-    socket.to(player.socketId).emit("new-round", { cards: player.cards, czar });
+    if (player.socketId === socket.id) {
+      socket.emit("new-round", { cards: player.cards, czar });
+    } else {
+      socket
+        .to(player.socketId)
+        .emit("new-round", { cards: player.cards, czar });
+    }
   });
 }
 
