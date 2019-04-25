@@ -8,13 +8,11 @@ const currentGames = [];
 const disconnect = socket => () => {
   console.log('A user disconnected');
 
-  const hostedGameIndex = currentGames.findIndex(game => game.host === socket.id);
+  const hostedGame = currentGames.find(game => game.host === socket.id);
 
-  // TODO: End the game, in the DB too.
-  // TODO: Emit to all players, that the host has disconnected.
-  if (hostedGameIndex !== -1) {
-    currentGames.splice(hostedGameIndex, 1);
-    console.log("Game has been stopped. Host disconnected.");
+  if (hostedGame) {
+    console.log("Host disconnected. Stopping game.");
+    endGame(socket)({ gameCode: hostedGame.code });
   }
 }
 
