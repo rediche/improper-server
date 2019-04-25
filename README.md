@@ -23,4 +23,5 @@ DB_POOL_LIMIT=1337
 
 ## Running the server
 
-`npm run start`
+`npm start` to run server.
+`npm run serve` to run dev server.
