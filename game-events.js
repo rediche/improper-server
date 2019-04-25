@@ -105,6 +105,7 @@ const joinGame = socket => ({ code }) => {
 
   unstartedGame.addPlayer(socket.id, () => {
     socket.join(code);
+    socket.to(unstartedGame.host).emit("player-connected", { playerCount: unstartedGame.players.length });
     socket.emit("game-joined", { code });
     console.log(`Joined game with id: ${code}`);
   });
