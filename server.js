@@ -4,8 +4,7 @@ const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 const gameEvents = require('./game-events');
 
-const hostname = '127.0.0.1';
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/demo.html');
@@ -24,6 +23,6 @@ io.on('connection', (socket) => {
   socket.on('end-game', gameEvents.endGame(socket));
 });
 
-http.listen(3000, () => {
-  console.log("Listening on *:3000");
+http.listen(PORT, () => {
+  console.log(`Listening on *:${PORT}`);
 });
