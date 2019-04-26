@@ -7,7 +7,7 @@ const gameEvents = require('./game-events');
 const PORT = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/demo.html');
+  res.redirect(301, process.env.FRONTEND_URL);
 });
 
 io.on('connection', (socket) => {

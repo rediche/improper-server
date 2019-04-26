@@ -13,6 +13,7 @@ DB_HOST=db.example.com
 DB_USER=username_example
 DB_PASS=password_example
 DB_NAME=database_example
+FRONTEND_URL=https://example.com
 ```
 
 Optional:
