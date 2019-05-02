@@ -27,7 +27,7 @@ const isInGame = socket => {
 const createGame = socket => () => {
   // REPORT: Deny creating a game, if a room is joined.
   if (isInGame(socket)) {
-    console.error(`Cannot create a game, when already connected to another.`);
+    sendError(socket)("You are already connected to a game.");
     return;
   }
 
@@ -35,7 +35,7 @@ const createGame = socket => () => {
 
   createGameDB(id, (error, { code, id }) => {
     if (error) {
-      console.error('Could not create game', error);
+      sendError(socket)("Could not create the game.");
       return;
     }
 
@@ -43,7 +43,6 @@ const createGame = socket => () => {
     currentGames.push(game);
     socket.join(code);
     socket.emit("game-created", { code });
-    console.log(`Created a game with code: ${code}`);
   });
 };
 
@@ -53,7 +52,6 @@ const createGameDB = (code, callback) => {
     [code],
     (error, result) => {
       if (error) {
-        console.error(`Could not create new game. ${error}`);
         callback(error, null);
         return;
       }
@@ -77,19 +75,17 @@ const isValidGameCode = code => {
 
 const joinGame = socket => ({ code }) => {
   if (isInGame(socket)) {
-    console.error(`Cannot join a game, when already connected to another.`);
+    sendError(socket)("You are already connected to a game.");
     return;
   }
-
+  
   if (!isValidGameCode(code)) {
-    // TODO: Send error message
-    console.error("Invalid join code");
+    sendError(socket)("Invalid game code.");
     return;
   }
 
   if (currentGames.length < 1) {
-    // TODO: Send error
-    console.error("Game does not exist.");
+    sendError(socket)("Game does not exist.");
     return;
   }
 
@@ -98,8 +94,7 @@ const joinGame = socket => ({ code }) => {
   );
 
   if (!unstartedGame) {
-    // TODO: Send error to client
-    console.error("Game is already started.");
+    sendError(socket)("Game is already started.");
     return;
   }
 
@@ -107,7 +102,6 @@ const joinGame = socket => ({ code }) => {
     socket.join(code);
     socket.to(unstartedGame.host).emit("player-connected", { playerCount: unstartedGame.players.length });
     socket.emit("game-joined", { code });
-    console.log(`Joined game with id: ${code}`);
   });
 };
 
@@ -116,21 +110,18 @@ const startGame = socket => () => {
   const hostingGame = currentGames.find(game => game.host === socket.id);
   
   if (!hostingGame) {
-    // TODO: Send error
-    console.error("You are not hosting any games.");
+    sendError(socket)("You are not hosting any games.");
     return;
   }
   
-  if (hostingGame.players.length < 2) {
-    // TODO: Send error
-    console.error("At least 2 players need to join the game.");
+  if (hostingGame.players.length < 3) {
+    sendError(socket)("At least 3 players needs to join the game.");
     return;
   }
   
   hostingGame.start((error, game) => {
     if (error) {
-      // TODO: Send error message
-      console.log("Error:", error);
+      sendError(socket)("Could not start the game.");
       return;
     }
 
@@ -148,8 +139,7 @@ const newRound = (socket) => () => {
   const game = currentGames.find(game => game.host === socket.id);
 
   if (!game) {
-    // TODO: Emit error
-    console.error('Could not find game');
+    sendError(socket)("Could not start new round.");
     return;
   }
 
@@ -158,7 +148,7 @@ const newRound = (socket) => () => {
 
 const newRoundEmits = (socket) => (error, game) => {
   if (error) {
-    console.error("Could not start new game", error);
+    sendError(socket)("Could not start new round.");
     return;
   }
 
@@ -187,16 +177,14 @@ const cardSelected = (socket) => ({ id }) => {
   });
 
   if (!game) {
-    // TODO: Emit error
-    console.error("Could not find game.");
+    sendError(socket)("Failed to select card.");
     return;
   }
 
   const player = game.players.find(player => player.socketId === socket.id);
 
   if (!player) {
-    // TODO: Emit error
-    console.error("Player not found.");
+    sendError(socket)("Failed to select card.");
     return;
   }
 
@@ -214,21 +202,21 @@ const cardSelected = (socket) => ({ id }) => {
           .emit('find-winner', { playedCards });
       }
     })
-    .catch(error => console.error(error)); // TODO: Send error to frontend;
+    .catch(error => sendError(socket)("Failed to select card."));
 }
 
 const winnerSelected = (socket) => ({ cardId, gameCode }) => {
   const game = findGameByCode(gameCode);
 
   if (!game) {
-    console.error("Game was not found."); // TODO: Send error to frontend.
+    sendError(socket)("Failed to select winner.");
     return;
   }
 
   const player = game.getPlayerByPlayedCard(cardId);
 
   if (!player) {
-    console.error("Player was not found."); // TODO: Send error to frontend.
+    sendError(socket)("Failed to select winner.");
     return;
   }
 
@@ -245,9 +233,9 @@ const winnerSelected = (socket) => ({ cardId, gameCode }) => {
             game.newRound(newRoundEmits(socket));
           }, 3000);
         })
-        .catch(error => console.error(error)); // TODO: Send error to frontend.
+        .catch(error => sendError(socket)("Failed to select winner."));
     })
-    .catch(error => console.error(error)); // TODO: Send error to frontend.
+    .catch(error => sendError(socket)("Failed to select winner."));
 }
 
 const findGameByCode = (code) => {
@@ -258,13 +246,12 @@ const endGame = (socket) => ({ gameCode }) => {
   const game = findGameByCode(gameCode);
 
   if (!game) {
-    console.error("Could not find game."); // TODO: Send error to frontend.
+    sendError(socket)("Could not end the game.");
     return; 
   }
 
   game.end()
     .then((winnerInfo) => {
-      console.log("Game ended!", winnerInfo);
       socket
         .emit('game-ended', { winner: winnerInfo.winner_id, wins: winnerInfo.wins })
         .to(game.code)
@@ -277,7 +264,11 @@ const endGame = (socket) => ({ gameCode }) => {
         currentGames.splice(gameIndex, 1);
       }
     })
-    .catch(error => console.error(error)); // TODO: Send error to frontend.
+    .catch(error => sendError(socket)("Could not end the game."));
+}
+
+const sendError = (socket) => (errorMessage) => {
+  socket.emit("error-message", { errorMessage });
 }
 
 module.exports = {

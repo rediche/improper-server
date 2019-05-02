@@ -17,8 +17,12 @@ module.exports = class Round {
   }
 
   async start() {
-    this.card = await this.getBlackCard();
-    this.id = await this.create(this.card.id);
+    try {
+      this.card = await this.getBlackCard();
+      this.id = await this.create(this.card.id);
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   getCzarSocketId(players) {
@@ -36,7 +40,6 @@ module.exports = class Round {
         [gameId, cardId, czarId],
         (error, result) => {
           if (error) {
-            // TODO: Pass error to frontend
             reject(error);
             return;
           }
