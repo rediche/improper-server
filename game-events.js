@@ -76,6 +76,7 @@ const isValidGameCode = code => {
 };
 
 const joinGame = socket => ({ code }) => {
+  console.log("Attempt to join game.");
   if (isInGame(socket)) {
     console.error(`Cannot join a game, when already connected to another.`);
     return;
@@ -94,7 +95,7 @@ const joinGame = socket => ({ code }) => {
   }
 
   const unstartedGame = currentGames.find(
-    game => game.started === false && game.code === code
+    game => game.started === false && game.code.toLowerCase() === code.toLowerCase()
   );
 
   if (!unstartedGame) {
@@ -251,7 +252,7 @@ const winnerSelected = (socket) => ({ cardId, gameCode }) => {
 }
 
 const findGameByCode = (code) => {
-  return currentGames.find(game => game.code === code);
+  return currentGames.find(game => game.code.toLowerCase() === code.toLowerCase());
 }
 
 const endGame = (socket) => ({ gameCode }) => {
