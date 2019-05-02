@@ -76,7 +76,6 @@ const isValidGameCode = code => {
 };
 
 const joinGame = socket => ({ code }) => {
-  console.log("Attempt to join game.");
   if (isInGame(socket)) {
     console.error(`Cannot join a game, when already connected to another.`);
     return;
