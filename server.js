@@ -1,7 +1,7 @@
 require('dotenv').config(); // Load environment variables straight away
 const app = require('express')();
 const http = require('http').createServer(app);
-const io = require('socket.io')(http);
+const io = require('socket.io')(http, { transports: [ 'websocket' ] });
 const gameEvents = require('./game-events');
 
 const PORT = process.env.PORT || 3000;
