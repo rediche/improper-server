@@ -231,4 +231,13 @@ module.exports = class Game {
       );
     });
   }
+
+  /**
+   * Check if a socket is in a game.
+   * @param {String} socketId
+   * @returns {Boolean}
+   */
+  hasConnectedSocket(socketId) {
+    return !!(this.players.find(player => player.socketId === socketId) || this.host === socketId);
+  }
 }

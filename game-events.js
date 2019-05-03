@@ -17,11 +17,7 @@ const disconnect = socket => () => {
 }
 
 const isInGame = socket => {
-  if (Object.keys(socket.rooms).length > 1) {
-    return true;
-  }
-
-  return false;
+  return !!currentGames.find(game => game.hasConnectedSocket(socket.id));
 };
 
 const createGame = socket => () => {
@@ -257,7 +253,6 @@ const endGame = (socket) => ({ gameCode }) => {
         .to(game.code)
         .emit('game-ended', { winner: winnerInfo.winner_id, wins: winnerInfo.wins });
       
-
       const gameIndex = currentGames.findIndex(lookupGame => lookupGame.id === game.id);
 
       if (gameIndex !== -1) {
