@@ -211,8 +211,8 @@ const cardSelected = (socket) => ({ id }) => {
 
       const playedCards = game.currentRound.getPlayedCards(game.players);
       socket.to(game.host).emit('card-played-host', { playedCards });
-      
-      if (game.currentRound.allMovesMade()) {
+
+      if (game.currentRound.allMovesMade(game.players)) {
         socket
           .emit('find-winner', { playedCards })
           .to(game.code)

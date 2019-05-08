@@ -137,9 +137,12 @@ module.exports = class Round {
     }, []);
   }
 
-  allMovesMade() {
+  allMovesMade(players) {
     const { moves } = this;
+    const disconnectedPlayers = players.filter(player => player.disconnected === true);
+    const movesArray = Object.keys(moves);
+    const movesWithoutDisconnectedPlayers = movesArray.filter(key => !!(disconnectedPlayers.find(player => player.id === key)));
 
-    return Object.keys(moves).every(key => moves[key] !== null);
+    return movesWithoutDisconnectedPlayers.every(key => moves[key] !== null);
   }
 };
