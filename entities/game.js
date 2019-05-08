@@ -239,11 +239,39 @@ module.exports = class Game {
   }
 
   /**
-   * Check if a socket is in a game.
+   * Check if a socket is in the game.
    * @param {String} socketId
    * @returns {Boolean}
    */
   hasConnectedSocket(socketId) {
     return !!(this.players.find(player => player.socketId === socketId) || this.host === socketId);
+  }
+
+  /**
+   * Check if a player is in the game.
+   * @param {Number} playerId 
+   * @returns {Boolean}
+   */
+  hasPlayer(playerId) {
+    return !!(this.players.find(player => player.id === playerId));
+  }
+
+  /** 
+   * Change a players socket ID.
+   * Useful for reconnecting players.
+   * @param {Number} playerId
+   * @param {String} newSocketId
+   * @returns {Boolean}
+   */
+  changePlayerSocket(playerId, newSocketId) {
+    const player = this.players.find(player => player.id === playerId);
+
+    if (!player) {
+      return false;
+    }
+    
+    player.socketId = newSocketId;
+
+    return true;
   }
 }

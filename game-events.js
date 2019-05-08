@@ -296,7 +296,15 @@ const reconnectGame = (socket) => ({ gameCode, playerId }, callback) => {
     return;
   }
 
-  console.log(game.id);
+  if (!game.hasPlayer(playerId)) {
+    callback({ reconnected: false });
+    return;
+  }
+
+  if (!game.changePlayerSocket(playerId, socket.id)) {
+    callback({ reconnected: false });
+  }
+
   callback({ reconnected: true });
 }
 
