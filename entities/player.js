@@ -3,5 +3,6 @@ module.exports = class Player {
     this.id = id;
     this.socketId = socketId;
     this.cards = [];
+    this.disconnected = false;
   }
 }

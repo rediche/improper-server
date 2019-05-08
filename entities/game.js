@@ -250,28 +250,18 @@ module.exports = class Game {
   /**
    * Check if a player is in the game.
    * @param {Number} playerId 
-   * @returns {Boolean}
+   * @returns {Player}
    */
-  hasPlayer(playerId) {
-    return !!(this.players.find(player => player.id === playerId));
+  getPlayerById(playerId) {
+    return this.players.find(player => player.id === playerId);
   }
 
-  /** 
-   * Change a players socket ID.
-   * Useful for reconnecting players.
-   * @param {Number} playerId
-   * @param {String} newSocketId
-   * @returns {Boolean}
+  /**
+   * Check if a player is in the game.
+   * @param {Number} socketId 
+   * @returns {Player}
    */
-  changePlayerSocket(playerId, newSocketId) {
-    const player = this.players.find(player => player.id === playerId);
-
-    if (!player) {
-      return false;
-    }
-    
-    player.socketId = newSocketId;
-
-    return true;
+  getPlayerBySocketId(socketId) {
+    return this.players.find(player => player.socketId === socketId);
   }
 }

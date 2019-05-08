@@ -13,7 +13,23 @@ const disconnect = socket => () => {
   if (hostedGame) {
     console.log("Host disconnected. Stopping game.");
     endGame(socket)({ gameCode: hostedGame.code });
+    return;
   }
+
+  const playingGame = currentGames.find(game => game.hasConnectedSocket(socket.id));
+
+  if (!playingGame) {
+    return;
+  }
+
+  const player = playingGame.getPlayerBySocketId(socket.id);
+
+  if (!player) {
+    console.log("Could not disconnect player from game.");
+    return;
+  }
+
+  player.disconnected = true;
 }
 
 const isInGame = socket => {
@@ -296,14 +312,15 @@ const reconnectGame = (socket) => ({ gameCode, playerId }, callback) => {
     return;
   }
 
-  if (!game.hasPlayer(playerId)) {
+  const player = game.getPlayerById(playerId);
+
+  if (!player) {
     callback({ reconnected: false });
     return;
   }
 
-  if (!game.changePlayerSocket(playerId, socket.id)) {
-    callback({ reconnected: false });
-  }
+  player.socketId = socket.id;
+  player.disconnected = false;
 
   callback({ reconnected: true });
 }
