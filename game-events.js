@@ -237,7 +237,7 @@ const winnerSelected = (socket) => ({ cardId, gameCode }) => {
     return;
   }
 
-  game.currentRound.setWinner(player)
+  game.currentRound.setWinner(player, game.players)
     .then(() => {
       game.getCardById(cardId)
         .then((winningCard) => {
@@ -305,7 +305,6 @@ const sendError = (socket) => (errorMessage) => {
 const reconnectGame = (socket) => ({ gameCode, playerId }, callback) => {
   console.log(playerId, gameCode);
   const game = findGameByCode(gameCode);
-  console.log(currentGames);
 
   if (!game) {
     callback({ reconnected: false });

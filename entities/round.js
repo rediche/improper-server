@@ -6,14 +6,7 @@ module.exports = class Round {
     this.gameId = gameId;
     this.czarId = czarId;
 
-    this.moves = players.reduce((moves, player) => {
-      if (player.id === czarId) {
-        return moves;
-      }
-
-      moves[player.id] = null;
-      return moves;
-    }, {});
+    this.moves = {};
   }
 
   async start() {
@@ -105,11 +98,11 @@ module.exports = class Round {
     });
   }
 
-  setWinner(player) {
+  setWinner(player, players) {
     const { id } = this;
 
     return new Promise((resolve, reject) => {
-      if (!this.allMovesMade()) {
+      if (!this.allMovesMade(players)) {
         reject("Not all moves have been made this round.");
         return;
       }
@@ -138,11 +131,9 @@ module.exports = class Round {
   }
 
   allMovesMade(players) {
-    const { moves } = this;
-    const disconnectedPlayers = players.filter(player => player.disconnected === true);
-    const movesArray = Object.keys(moves);
-    const movesWithoutDisconnectedPlayers = movesArray.filter(key => !!(disconnectedPlayers.find(player => player.id === key)));
-
-    return movesWithoutDisconnectedPlayers.every(key => moves[key] !== null);
+    const { moves, czarId } = this;
+    const playersNotDisconnectedOrCzar = players.filter(player => (player.disconnected === false && player.id !== czarId));
+    
+    return !!(Object.keys(moves).length === playersNotDisconnectedOrCzar.length);
   }
 };
