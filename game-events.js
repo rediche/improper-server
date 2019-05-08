@@ -251,13 +251,28 @@ const endGame = (socket) => ({ gameCode }) => {
     return; 
   }
 
+  const gameIndex = currentGames.findIndex(lookupGame => lookupGame.id === game.id);
+
+  if (!game.started) {
+    socket
+      .emit('game-ended')
+      .to(game.code)
+      .emit('game-ended');
+
+    if (gameIndex !== -1) {
+      currentGames.splice(gameIndex, 1);
+    }
+
+    return;
+  }
+
   game.end()
     .then((winnerInfo) => {
       socket
         .emit('game-ended', { winner: winnerInfo.winner_id, wins: winnerInfo.wins })
         .to(game.code)
         .emit('game-ended', { winner: winnerInfo.winner_id, wins: winnerInfo.wins });
-      
+
       const gameIndex = currentGames.findIndex(lookupGame => lookupGame.id === game.id);
 
       if (gameIndex !== -1) {
@@ -271,6 +286,20 @@ const sendError = (socket) => (errorMessage) => {
   socket.emit("error-message", { errorMessage });
 }
 
+const reconnectGame = (socket) => ({ gameCode, playerId }, callback) => {
+  console.log(playerId, gameCode);
+  const game = findGameByCode(gameCode);
+  console.log(currentGames);
+
+  if (!game) {
+    callback({ reconnected: false });
+    return;
+  }
+
+  console.log(game.id);
+  callback({ reconnected: true });
+}
+
 module.exports = {
   createGame,
   joinGame,
@@ -278,5 +307,6 @@ module.exports = {
   disconnect,
   cardSelected,
   winnerSelected,
-  endGame
+  endGame,
+  reconnectGame
 };

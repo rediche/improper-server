@@ -42,8 +42,13 @@ module.exports = class Game {
    * @returns Promise<void>
    */
   end() {
-    const { id } = this;
+    const { id, started } = this;
+
     return new Promise((resolve, reject) => {
+      if (!started) {
+        reject("Game is not started.");
+        return;
+      }
       // Set ended_at in DB
       connectionPool.query(
         'UPDATE games SET ended_at = NOW() WHERE id = ?',
