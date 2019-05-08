@@ -4,5 +4,6 @@ module.exports = class Player {
     this.socketId = socketId;
     this.cards = [];
     this.disconnected = false;
+    this.reconnected = false;
   }
 }

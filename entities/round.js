@@ -5,7 +5,6 @@ module.exports = class Round {
   constructor(gameId, czarId, players) {
     this.gameId = gameId;
     this.czarId = czarId;
-
     this.moves = {};
   }
 
@@ -132,7 +131,7 @@ module.exports = class Round {
 
   allMovesMade(players) {
     const { moves, czarId } = this;
-    const playersNotDisconnectedOrCzar = players.filter(player => (player.disconnected === false && player.id !== czarId));
+    const playersNotDisconnectedOrCzar = players.filter(player => (player.disconnected === false && player.reconnected === false && player.id !== czarId));
     
     return !!(Object.keys(moves).length === playersNotDisconnectedOrCzar.length);
   }

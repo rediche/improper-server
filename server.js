@@ -16,7 +16,6 @@ io.on('connection', (socket) => {
   socket.on('disconnect', gameEvents.disconnect(socket));
 
   socket.on('reconnect-game', gameEvents.reconnectGame(socket));
-
   socket.on('create-game', gameEvents.createGame(socket));
   socket.on('join-game', gameEvents.joinGame(socket));
   socket.on('start-game', gameEvents.startGame(socket));

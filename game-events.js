@@ -160,6 +160,8 @@ const newRound = (socket) => () => {
     return;
   }
 
+  game.players.map(player => player.reconnected = false);
+
   game.newRound(newRoundEmits(socket));
 }
 
@@ -303,7 +305,6 @@ const sendError = (socket) => (errorMessage) => {
 }
 
 const reconnectGame = (socket) => ({ gameCode, playerId }, callback) => {
-  console.log(playerId, gameCode);
   const game = findGameByCode(gameCode);
 
   if (!game) {
@@ -320,6 +321,9 @@ const reconnectGame = (socket) => ({ gameCode, playerId }, callback) => {
 
   player.socketId = socket.id;
   player.disconnected = false;
+  player.reconnected = true;
+
+  socket.join(gameCode);
 
   callback({ reconnected: true });
 }
