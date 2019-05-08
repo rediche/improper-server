@@ -179,12 +179,13 @@ module.exports = class Game {
       (error, result) => {
         if (error) {
           console.error("Could not create player for game.", error);
-          callback(error);
+          callback(error, null);
           return;
         }
 
-        this.players.push(new Player({ id: result.insertId, socketId }));
-        callback(null);
+        const player = new Player({ id: result.insertId, socketId });
+        this.players.push(player);
+        callback(null, player.id);
       }
     );
   }

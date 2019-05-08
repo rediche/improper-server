@@ -69,7 +69,7 @@ const isValidGameCode = code => {
   return true;
 };
 
-const joinGame = socket => ({ code }) => {
+const joinGame = socket => ({ code }, callback) => {
   if (isInGame(socket)) {
     sendError(socket)("You are already connected to a game.");
     return;
@@ -94,10 +94,15 @@ const joinGame = socket => ({ code }) => {
     return;
   }
 
-  unstartedGame.addPlayer(socket.id, () => {
+  unstartedGame.addPlayer(socket.id, (error, playerId) => {
+    if (error) {
+      sendError(socket)("Could not add player to game.");
+      return;
+    };
+
     socket.join(code);
     socket.to(unstartedGame.host).emit("player-connected", { playerCount: unstartedGame.players.length });
-    socket.emit("game-joined", { code });
+    callback({ gameCode: code, playerId });
   });
 };
 
