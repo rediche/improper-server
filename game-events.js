@@ -85,7 +85,7 @@ const isValidGameCode = code => {
   return true;
 };
 
-const joinGame = socket => ({ code }, callback) => {
+const joinGame = socket => ({ code, nickname }, callback) => {
   if (isInGame(socket)) {
     sendError(socket)("You are already connected to a game.");
     return;
@@ -118,8 +118,8 @@ const joinGame = socket => ({ code }, callback) => {
 
     socket.join(code);
     socket.to(unstartedGame.host).emit("player-connected", { playerCount: unstartedGame.players.length });
-    callback({ gameCode: code, playerId });
-  });
+    callback({ gameCode: code, playerId, nickname });
+  }, { nickname });
 };
 
 const startGame = socket => () => {

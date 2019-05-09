@@ -175,7 +175,13 @@ module.exports = class Game {
     );
   }
 
-  addPlayer(socketId, callback) {
+  /**
+   * Add player to a game.
+   * @param {String} socketId Socket ID of the player.
+   * @param {Function} callback Callback function when player has been added.
+   * @param {Object} options Optional values for the player. 
+   */
+  addPlayer(socketId, callback, { nickname = "" } = {}) {
     const { id } = this;
 
     connectionPool.query(
@@ -188,7 +194,8 @@ module.exports = class Game {
           return;
         }
 
-        const player = new Player({ id: result.insertId, socketId });
+        const player = new Player({ id: result.insertId, socketId, nickname });
+        console.log(player);
         this.players.push(player);
         callback(null, player.id);
       }
