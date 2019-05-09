@@ -244,9 +244,9 @@ const winnerSelected = (socket) => ({ cardId, gameCode }) => {
       game.getCardById(cardId)
         .then((winningCard) => {
           socket
-            .emit('winner-found', { card: winningCard })
+            .emit('winner-found', { card: winningCard, nickname: player.nickname })
             .to(game.code)
-            .emit('winner-found', { card: winningCard });
+            .emit('winner-found', { card: winningCard, nickname: player.nickname });
     
           setTimeout(() => {
             game.newRound(newRoundEmits(socket));
