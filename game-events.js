@@ -287,9 +287,9 @@ const endGame = (socket) => ({ gameCode }) => {
   game.end()
     .then((winnerInfo) => {
       socket
-        .emit('game-ended', { winner: winnerInfo.winner_id, wins: winnerInfo.wins })
+        .emit('game-ended', { nickname: winnerInfo.nickname, wins: winnerInfo.wins })
         .to(game.code)
-        .emit('game-ended', { winner: winnerInfo.winner_id, wins: winnerInfo.wins });
+        .emit('game-ended', { nickname: winnerInfo.nickname, wins: winnerInfo.wins });
 
       const gameIndex = currentGames.findIndex(lookupGame => lookupGame.id === game.id);
 

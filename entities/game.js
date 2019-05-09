@@ -39,7 +39,7 @@ module.exports = class Game {
 
   /**
    * End the game.
-   * @returns Promise<void>
+   * @returns Promise
    */
   end() {
     const { id, started } = this;
@@ -63,7 +63,13 @@ module.exports = class Game {
           // Find winner of game
           this.currentWinner()
             .then((winnerInfo) => {
-              resolve(winnerInfo);
+              const player = this.getPlayerById(winnerInfo.winner_id);
+
+              if (!player) {
+                reject("Could not find winner.");
+              }
+
+              resolve({ wins: winnerInfo.wins, nickname: player.nickname || "Player " + winnerInfo.id });
             })
             .catch(error => reject(error));
         }
@@ -73,7 +79,7 @@ module.exports = class Game {
 
   /**
    * Returns the player who won the most rounds in this game.
-   * @returns Promise<void>
+   * @returns Promise
    */
   currentWinner() {
     const { id } = this;
