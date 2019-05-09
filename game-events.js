@@ -36,7 +36,7 @@ const isInGame = socket => {
   return !!currentGames.find(game => game.hasConnectedSocket(socket.id));
 };
 
-const createGame = socket => () => {
+const createGame = socket => ({}, callback) => {
   // REPORT: Deny creating a game, if a room is joined.
   if (isInGame(socket)) {
     sendError(socket)("You are already connected to a game.");
@@ -54,7 +54,7 @@ const createGame = socket => () => {
     const game = new Game({ host: socket.id, code, id });
     currentGames.push(game);
     socket.join(code);
-    socket.emit("game-created", { code });
+    callback({ code });
   });
 };
 
