@@ -2,7 +2,6 @@ const connectionPool = require("./database");
 const utils = require("./utils");
 const Game = require('./entities/game');
 
-// REPORT: Talk about the currentGames array and how it keeps state in the backend.
 const currentGames = [];
 
 const disconnect = socket => () => {
@@ -37,7 +36,6 @@ const isInGame = socket => {
 };
 
 const createGame = socket => ({}, callback) => {
-  // REPORT: Deny creating a game, if a room is joined.
   if (isInGame(socket)) {
     sendError(socket)("You are already connected to a game.");
     return;

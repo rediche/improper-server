@@ -140,7 +140,6 @@ module.exports = class Game {
     }
   }
 
-  // REPORT: Talk about thoughts for query speed in the DB. 1 request per player, vs 1 big request.
   dealCardsToPlayers(callback) {
     const { started, players } = this;
     const CARD_MAX = 10;
