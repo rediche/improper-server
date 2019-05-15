@@ -150,7 +150,7 @@ module.exports = class Game {
     }
 
     const missingWhiteCards = players.reduce(
-      (total, player) => (total += player.cards.length),
+      (total, player) => (total -= player.cards.length),
       players.length * CARD_MAX
     );
 
