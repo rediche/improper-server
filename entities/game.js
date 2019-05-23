@@ -69,7 +69,7 @@ module.exports = class Game {
                 reject("Could not find winner.");
               }
 
-              resolve({ wins: winnerInfo.wins, nickname: player.nickname || "Player " + winnerInfo.id });
+              resolve({ wins: winnerInfo.wins, nickname: player.nickname || "Player " + winnerInfo.winner_id });
             })
             .catch(error => reject(error));
         }
