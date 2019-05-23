@@ -120,6 +120,10 @@ const joinGame = socket => ({ code, nickname }, callback) => {
   }, { nickname });
 };
 
+const hasRequiredPlayers = (game) => {
+  return game.players.length > 3;
+}
+
 const startGame = socket => () => {
   // Check if socket is a host
   const hostingGame = currentGames.find(game => game.host === socket.id);
@@ -129,7 +133,7 @@ const startGame = socket => () => {
     return;
   }
   
-  if (hostingGame.players.length < 3) {
+  if (hasRequiredPlayers(hostingGame)) {
     sendError(socket)("At least 3 players needs to join the game.");
     return;
   }
