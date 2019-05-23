@@ -11,7 +11,7 @@ const disconnect = socket => () => {
 
   if (hostedGame) {
     console.log("Host disconnected. Stopping game.");
-    endGame(socket)({ gameCode: hostedGame.code });
+    endGame(socket)({ gameCode: hostedGame.code }, null);
     return;
   }
 
@@ -279,7 +279,9 @@ const endGame = (socket) => ({ gameCode }, callback) => {
       .to(game.code)
       .emit('game-ended');
 
-    callback();
+    if (callback) {
+      callback();
+    }
 
     if (gameIndex !== -1) {
       currentGames.splice(gameIndex, 1);
@@ -294,7 +296,9 @@ const endGame = (socket) => ({ gameCode }, callback) => {
         .to(game.code)
         .emit('game-ended', winnerInfo);
       
-      callback(winnerInfo);
+      if (callback) {
+        callback(winnerInfo);
+      }
 
       const gameIndex = currentGames.findIndex(lookupGame => lookupGame.id === game.id);
 
