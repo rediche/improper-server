@@ -145,7 +145,7 @@ const startGame = socket => ({}, callback) => {
     }
 
     callback();
-    
+
     socket
       .to(game.code)
       .emit("game-started");
@@ -193,7 +193,7 @@ const newRoundEmits = (socket) => (error, game) => {
   });
 }
 
-const cardSelected = (socket) => ({ id }) => {
+const cardSelected = (socket) => ({ id }, callback) => {
   const game = currentGames.find(game => {
     return game.players.find(player => player.socketId === socket.id);
   });
@@ -212,7 +212,7 @@ const cardSelected = (socket) => ({ id }) => {
 
   game.currentRound.makeMove(id, player)
     .then(() => {
-      socket.emit('card-played', { id });
+      callback({ id });
 
       const playedCards = game.currentRound.getPlayedCards(game.players);
       socket.to(game.host).emit('card-played-host', { playedCards });
