@@ -264,7 +264,7 @@ const findGameByCode = (code) => {
   return currentGames.find(game => game.code.toLowerCase() === code.toLowerCase());
 }
 
-const endGame = (socket) => ({ gameCode }) => {
+const endGame = (socket) => ({ gameCode }, callback) => {
   const game = findGameByCode(gameCode);
 
   if (!game) {
@@ -276,9 +276,10 @@ const endGame = (socket) => ({ gameCode }) => {
 
   if (!game.started) {
     socket
-      .emit('game-ended')
       .to(game.code)
       .emit('game-ended');
+
+    callback();
 
     if (gameIndex !== -1) {
       currentGames.splice(gameIndex, 1);
@@ -290,9 +291,10 @@ const endGame = (socket) => ({ gameCode }) => {
   game.end()
     .then((winnerInfo) => {
       socket
-        .emit('game-ended', { nickname: winnerInfo.nickname, wins: winnerInfo.wins })
         .to(game.code)
-        .emit('game-ended', { nickname: winnerInfo.nickname, wins: winnerInfo.wins });
+        .emit('game-ended', winnerInfo);
+      
+      callback(winnerInfo);
 
       const gameIndex = currentGames.findIndex(lookupGame => lookupGame.id === game.id);
 
