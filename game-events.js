@@ -124,7 +124,7 @@ const hasRequiredPlayers = (game) => {
   return game.players.length > 3;
 }
 
-const startGame = socket => () => {
+const startGame = socket => ({}, callback) => {
   // Check if socket is a host
   const hostingGame = currentGames.find(game => game.host === socket.id);
   
@@ -144,10 +144,11 @@ const startGame = socket => () => {
       return;
     }
 
+    callback();
+    
     socket
-      .emit("game-started")  // Emit to hosting socket.
       .to(game.code)
-      .emit("game-started"); // Emit to all other sockets in game.
+      .emit("game-started");
 
     newRound(socket)();
   });
