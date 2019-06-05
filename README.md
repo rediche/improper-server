@@ -22,6 +22,10 @@ Optional:
 DB_POOL_LIMIT=1337
 ```
 
+## Installing dependencies
+
+`npm i` to install dependencies.
+
 ## Running the server
 
 `npm start` to run server.
